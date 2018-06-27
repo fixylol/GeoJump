@@ -5,6 +5,8 @@ loss = 0
 debugmode = true -- debug mode?
 godmode = false -- lets you walk over water LIKE JESUS DID HAHA GET IT
 
+GameState = "menu" -- menu = main menu, playing = in-game
+
 local levels = require("levels") -- loads levels
 local currentLevel
 
@@ -62,6 +64,22 @@ function GenerateMap(seed)
     return TileTable
 end
 
+function DrawLevel() -- drawing the level and entities
+	--drawing tiles
+	if TileTable == nil then return end
+  for rowIndex=1, #TileTable do
+    local row = TileTable[rowIndex]
+      for columnIndex=1, #row do
+        local number = row[columnIndex]
+        love.graphics.draw(terrain, tiles[number], (columnIndex-1)*TileW, (rowIndex-1)*TileH)
+    end
+  end
+
+	--drawing character
+	local charpos = GetCharPos()
+  love.graphics.draw(char,charpos[1],charpos[2])
+end
+
 function Move(key) -- movement and collision system
 	local jump
 	
@@ -71,23 +89,23 @@ function Move(key) -- movement and collision system
 	local moveto -- tile to move to
 	local movefrom -- tile moved from
 	
-    if love.keyboard.isDown("space") then
-        jump = true
-    end
-    if key == "w" or key == "up" then
-		movey = -1
-    elseif key == "s" or key == "down" then
-        movey = 1
-    elseif key == "a" or key == "left" then
-        movex = -1
-    elseif key == "d" or key == "right" then
-        movex = 1
-	elseif key == "m" and debugmode then -- godmode toggle
+  if love.keyboard.isDown("space") then
+      jump = true
+  end
+  if key == "w" or key == "up" then
+	movey = -1
+  elseif key == "s" or key == "down" then
+      movey = 1
+  elseif key == "a" or key == "left" then
+      movex = -1
+  elseif key == "d" or key == "right" then
+      movex = 1
+	elseif key == "f2" and debugmode then -- godmode toggle
 		if godmode then godmode = false elseif not godmode then godmode = true end -- confusing but gets the job done
 	elseif key == "check" then
 		movex = 0
 		movey = 0
-    end
+  end
 	if jump then
 		movex = movex * 2
 		movey = movey * 2
@@ -139,59 +157,60 @@ function Move(key) -- movement and collision system
 end
 
 function love.load(arg)
-    -- genseed = tonumber(arg[1]) -- really old depricated feature
-    TileW, TileH = 32, 32
-    chartilex = 1
-    chartiley = 1
-    terrain = love.graphics.newImage("terrain2.png")
-    titlescreen = love.graphics.newImage("awedd2.png")
+  TileW, TileH = 32, 32
+  chartilex = 1
+  chartiley = 1
+  terrain = love.graphics.newImage("terrain2.png")
+  titlescreen = love.graphics.newImage("awedd2.png")
 	--declaring tiles and setting tile textures
-    tiles = {}
-    tiles[1] = love.graphics.newQuad(0,0,32,32,terrain:getDimensions()) -- grass
-    tiles[2] = love.graphics.newQuad(32,0,32,32,terrain:getDimensions()) -- void(?)
-    tiles[3] = love.graphics.newQuad(64,0,32,32,terrain:getDimensions()) -- finish
+  tiles = {}
+  tiles[1] = love.graphics.newQuad(0,0,32,32,terrain:getDimensions()) -- grass
+  tiles[2] = love.graphics.newQuad(32,0,32,32,terrain:getDimensions()) -- void(?)
+  tiles[3] = love.graphics.newQuad(64,0,32,32,terrain:getDimensions()) -- finish
 	tiles[4] = love.graphics.newQuad(0,128,32,128,terrain:getDimensions()) -- thinnest ice
 	tiles[5] = love.graphics.newQuad(32,128,64,128,terrain:getDimensions()) -- thin ice
 	tiles[6] = love.graphics.newQuad(64,128,96,128,terrain:getDimensions()) -- thick ice
 	tiles[7] = love.graphics.newQuad(96,128,128,128,terrain:getDimensions()) -- thickest ice
 
-    char = love.graphics.newImage("char.png")
-    bgm1 = love.audio.newSource("bgm1.mp3")
-    timer = 0
+  char = love.graphics.newImage("char.png")
+  bgm1 = love.audio.newSource("bgm1.mp3")
+  timer = 0
 
-    loaded = false
-    finished = false
+  loaded = false
+  finished = false
 end
 
 function love.update(dt)
-    if loaded == true and finished == false then
-        timer = timer + dt
-    end
-    love.audio.play(bgm1)
-	print("gay")
+  if GameState == "playing" and finished == false then
+    timer = timer + dt
+  end
+  love.audio.play(bgm1)
 end
 
 function love.draw()
-	if not loaded then
-        love.graphics.draw(titlescreen,0,0,0)
-    end
-    if TileTable == nil then return end
-    for rowIndex=1, #TileTable do
-        local row = TileTable[rowIndex]
-        for columnIndex=1, #row do
-            local number = row[columnIndex]
-            love.graphics.draw(terrain, tiles[number], (columnIndex-1)*TileW, (rowIndex-1)*TileH)
-        end
-    end
+	-- draw the level
+	if GameState == "menu" then
+      love.graphics.draw(titlescreen,0,0,0)
+	elseif GameState == "playing" then
+		DrawLevel()
+  end
+	
+	--drawing text
+	if GameState == "playing" then
+		love.graphics.print({{0,0,0}, [[
+		GeoJump v0.1.0
+			
+		Level: ]].. currentLevel.id .. [[
+			
+		Time: ]] .. timer ..[[
+			
+		Losses: ]] .. loss ..[[
+		]]},0,0)
+	end
 	local charpos = GetCharPos()
-    love.graphics.draw(char,charpos[1],charpos[2])
-	love.graphics.print({{0,0,0},"Level: "..currentLevel.id})
-    love.graphics.print({{0,0,0},"Time: "..timer},0,10)
-	love.graphics.print({{0,0,0},"Losses: "..loss},0,20)
-	love.graphics.print({{0,0,0},love.filesystem.getIdentity()},0,69)
 	if debugmode then
-		love.graphics.print({{0,0,0},"(Pixel) X: "..charpos[1]..", Y: "..charpos[2]},0,30)
-		love.graphics.print({{0,0,0},"(Tile) X: "..chartilex..", Y: "..chartiley},0,40)
+		love.graphics.print({{0,0,0},"(Pixel) X: "..charpos[1]..", Y: "..charpos[2]},0,70)
+		love.graphics.print({{0,0,0},"(Tile) X: "..chartilex..", Y: "..chartiley},0,80)
 	end
 	if godmode then
 		love.graphics.print({{0,0,0},"God mode enabled!"},0,50)
@@ -202,11 +221,14 @@ function love.keypressed(key,scancode,isrepeat)
 	if key == "escape" then
 		love.event.quit()
 	end
-    if loaded == true then
-        Move(key)
-    else
-		LoadMap(1)
-		Move("check")
-        loaded = true
+	if key == "f1" then -- toggle debug mode
+		if debugmode then debugmode = false else debugmode = true end
+	end
+    if GameState == "playing" then
+      Move(key)
+    elseif GameState == "menu" then
+			LoadMap(1)
+			Move("check")
+    	GameState = "playing"
     end
 end
