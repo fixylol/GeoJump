@@ -8,8 +8,7 @@
 
 function love.conf(t)
     --t.identity = "AweddDotSim"
-    t.window.title = "awedd"
-    t.window.icon = "icon.jpg"
+    t.window.title = "GeoJump"
     t.window.height = 448
     t.window.width = 799
 end

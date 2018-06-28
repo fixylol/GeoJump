@@ -160,8 +160,8 @@ function love.load(arg)
   TileW, TileH = 32, 32
   chartilex = 1
   chartiley = 1
-  terrain = love.graphics.newImage("terrain2.png")
-  titlescreen = love.graphics.newImage("awedd2.png")
+  terrain = love.graphics.newImage("assets/tiles.png")
+  titlescreen = love.graphics.newImage("assets/screen1.png")
 	--declaring tiles and setting tile textures
   tiles = {}
   tiles[1] = love.graphics.newQuad(0,0,32,32,terrain:getDimensions()) -- grass
@@ -172,8 +172,8 @@ function love.load(arg)
 	tiles[6] = love.graphics.newQuad(64,128,96,128,terrain:getDimensions()) -- thick ice
 	tiles[7] = love.graphics.newQuad(96,128,128,128,terrain:getDimensions()) -- thickest ice
 
-  char = love.graphics.newImage("char.png")
-  bgm1 = love.audio.newSource("bgm1.mp3")
+  char = love.graphics.newImage("assets/char.png")
+  bgm1 = love.audio.newSource("assets/bgm1.mp3")
   timer = 0
 
   loaded = false
